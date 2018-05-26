@@ -4,6 +4,7 @@ A Multi-Threaded Chat/File Transfer tool from one computer to others on a common
 You can transfer any type of file.
 
 # Requirements:
+=======
 
 Ubuntu / other Linux-based distros
 MacOS
