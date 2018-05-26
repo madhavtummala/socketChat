@@ -3,7 +3,7 @@
 A Multi-Threaded Chat/File Transfer tool from one computer to others on a common Network 
 You can transfer any type of file.
 
-# Specifications:
+# Requirements:
 
 Ubuntu / other Linux-based distros
 MacOS
