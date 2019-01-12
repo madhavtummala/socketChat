@@ -4,6 +4,7 @@
 #include <stdlib.h>       		//EXIT_FAILURE, memset
 #include <string.h>				//strlen()
 #include <netinet/in.h>			//for struct sockaddr
+#include <pthread.h>			//for multi threading
 /*
 
 int sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -14,15 +15,115 @@ int setsockopt(int sockfd, int level, int optname,
 int bind(int sockfd, const struct sockaddr *addr, 
 				socklen_t addrlen);
 
-int listen(int sockfd, int backlog);
+int listen(int sockfd, int NUMCONN);
 
 int new_socket = accept(int sockfd, struct sockaddr *addr,
 							socklen_t *addrlen);
 
 */
 
-#define BACKLOG 5
+#define NUMCONN 5
 #define PORT 8080
+#define BUFFSIZE 1024
+#define MAX_CLIENTS 5
+
+void *read_client(void* client_socket)
+{
+	int client = *(int*)client_socket;
+	char buffer[BUFFSIZE];
+
+	while(1)
+	{
+		memset(&buffer, 0, sizeof(buffer));
+		read(client, buffer, sizeof(buffer));
+		printf("%s\n",buffer);
+	}
+
+	return NULL;
+}
+
+void *write_client(void* client_socket)
+{
+	int client = *(int*)client_socket;
+	char buffer[BUFFSIZE];
+
+	while(1)
+	{
+		memset(&buffer, 0, sizeof(buffer));
+		fgets(buffer,sizeof(buffer),stdin);
+		buffer[strlen(buffer)-1]='\0';
+		write(client, buffer, sizeof(buffer));
+	}
+
+	return NULL;
+}
+
+void *client_handler(void* client_socket)
+{
+	int client = *(int*)client_socket;
+	printf("Accepted client %d\n",client);
+	pthread_t read, write;
+	pthread_create(&read, NULL, read_client, (void*)client_socket);
+	pthread_create(&write, NULL, write_client, (void*)client_socket);
+
+	pthread_join(read, NULL);
+	pthread_join(write, NULL);
+
+	return NULL;
+}
+
+int main()
+{
+	int server_socket,client_socket,ret;
+	struct sockaddr_in server_addr;
+	int addrlen = sizeof(server_addr);
+	pthread_t clients[MAX_CLIENTS];
+
+	server_socket = socket(AF_INET, SOCK_STREAM, 0);
+	if(server_socket == 0)
+	{
+		perror("socker failed\n");
+		exit(EXIT_FAILURE);
+	}
+
+	server_addr.sin_addr.s_addr = INADDR_ANY;
+	server_addr.sin_port = htons(PORT);
+	server_addr.sin_family = AF_INET;
+
+	ret = bind(server_socket, (struct sockaddr *)&server_addr, 
+								sizeof(server_addr));
+	if(ret<0)
+	{
+		perror("bind failed");
+		exit(EXIT_FAILURE);
+	}
+
+	ret = listen(server_socket, NUMCONN);
+	if(ret<0)
+	{
+		perror("listen failed");
+		exit(EXIT_FAILURE);
+	}
+
+
+	for(int i=0;i<MAX_CLIENTS;i++)
+	{
+		client_socket = accept(server_socket, 
+							(struct sockaddr *)&server_addr,
+									(socklen_t*)&addrlen);
+
+		pthread_create(&clients[i], NULL, client_handler, 
+									(void*)&client_socket);
+	}
+
+	for(int i=0;i<MAX_CLIENTS;i++)
+		pthread_join(clients[i], NULL);
+
+
+	return 0;
+}
+
+/*
 
 int main()
 {
@@ -68,7 +169,7 @@ int main()
 	}
 
 	printf("Before listen\n");
-	ret = listen(server_fd, BACKLOG);
+	ret = listen(server_fd, NUMCONN);
 	printf("After listen\n");
 	if(ret<0)
 	{
@@ -100,7 +201,9 @@ int main()
 	send(new_socket, hello , strlen(hello), 0);
 	send(new_socket, hello , strlen(hello), 0);
 	printf("Hello messages sent\n");
-	
+
 	return 0;
 
 }
+
+*/
