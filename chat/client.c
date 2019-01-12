@@ -2,7 +2,7 @@
 #include<sys/types.h>
 #include<sys/socket.h>
 #include<netinet/in.h>
-#include<netdb.h>  
+#include<netdb.h>
 #include<unistd.h>
 #include<string.h>
 #include<stdlib.h>
@@ -24,7 +24,7 @@ int main(int argc, char **argv)
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(PORT);
 
-    ptrh=gethostbyname("10.0.32.226"); //ipadress of server here
+    ptrh=gethostbyname("10.10.68.83"); //ipadress of server here
     memcpy(&server_addr.sin_addr,ptrh->h_addr,ptrh->h_length);
     // server_addr.sin_addr.s_addr = INADDR_ANY;
 

@@ -1,11 +1,11 @@
 #include<sys/types.h>
 #include<sys/socket.h>
 #include<netinet/in.h>
-#include<stdio.h>
-#include<stdlib.h>
-#include<unistd.h>
-#include<string.h>
-#include<netdb.h>
+#include<stdio.h> //printf scanf
+#include<stdlib.h> //memset
+#include<unistd.h> 
+#include<string.h> //for string functions
+#include<netdb.h> //for htons
 
 int main(int argc, char **argv) 
 {
