@@ -4,8 +4,8 @@
 #include <stdlib.h>       		//EXIT_FAILURE, memset
 #include <string.h>				//strlen()
 #include <netinet/in.h>			//for struct sockaddr
-#include <pthread.h>
-
+#include <pthread.h>			//for multi threading
+#include <stdbool.h>			//for boolean var
 /*
 
 int connect(int sockfd, const struct sockaddr *addr,
@@ -16,16 +16,19 @@ int connect(int sockfd, const struct sockaddr *addr,
 #define PORT 8080
 #define BUFFSIZE 1024
 
+bool server;
+
 void *read_client(void* client_socket)
 {
 	int client = *(int*)client_socket;
 	char buffer[BUFFSIZE];
 
-	while(1)
+	while(server)
 	{
 		memset(&buffer, 0, sizeof(buffer));
 		read(client, buffer, sizeof(buffer));
-		printf("%s\n",buffer);
+		if(strcmp(buffer, "q")==0) server=false;
+		else printf("Server: %s\n",buffer);
 	}
 
 	return NULL;
@@ -36,12 +39,13 @@ void *write_client(void* client_socket)
 	int client = *(int*)client_socket;
 	char buffer[BUFFSIZE];
 
-	while(1)
+	while(server)
 	{
 		memset(&buffer, 0, sizeof(buffer));
 		fgets(buffer,sizeof(buffer),stdin);
 		buffer[strlen(buffer)-1]='\0';
 		write(client, buffer, sizeof(buffer));
+		if(strcmp(buffer, "q")) server=false;
 	}
 
 	return NULL;
@@ -73,6 +77,7 @@ int main()
 		exit(EXIT_FAILURE);
 	}
 
+	server = true;
 	pthread_t read, write;
 
 	pthread_create(&read, NULL, read_client, (void*)&client_socket);
@@ -83,43 +88,3 @@ int main()
 
 	return 0;
 }
-
-/*
-
-int main()
-{
-	struct sockaddr_in address;
-	int sockfd = 0,valread,ret;
-	struct sockaddr_in serv_addr;
-	char *hello = "Hello from client";
-	char buffer[1024] = {0};
-
-	sockfd = socket(AF_INET, SOCK_STREAM, 0);
-	if(sockfd <0)
-	{
-		perror("socker creation failed");
-		exit(EXIT_FAILURE);
-	}
-
-	memset(&serv_addr, '0', sizeof(serv_addr));
-
-	serv_addr.sin_family = AF_INET;
-	serv_addr.sin_port = htons(PORT);
-	serv_addr.sin_addr.s_addr = INADDR_ANY;
-
-	ret = connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
-
-	if(ret<0)
-	{
-		perror("Connection error");
-		exit(EXIT_FAILURE);
-	}
-	send(sockfd, hello, strlen(hello), 0);
-	printf("Hello messsage sent\n");
-	valread = read(sockfd, buffer, 1024);
-	printf("%s\n",buffer);
-
-	return 0;
-
-}
-*/
