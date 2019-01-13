@@ -6,6 +6,7 @@
 #include <netinet/in.h>			//for struct sockaddr
 #include <pthread.h>			//for multi threading
 #include <stdbool.h>			//for boolean var
+#include <dirent.h>				//for directories
 /*
 
 int sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -30,7 +31,66 @@ int new_socket = accept(int sockfd, struct sockaddr *addr,
 
 int n_conn;
 int fd[MAX_CLIENTS];
-bool server;
+bool server,file;
+
+void file_send(int client)
+{
+
+	DIR *d;
+	struct dirent *dir;
+	d = opendir(".");
+	char buffer[BUFFSIZE];
+	char fname[100];
+
+	if(d)
+	{
+		char *name;
+		while((dir = readdir(d)) != NULL){
+			strcat(buffer,dir->d_name);
+			strcat(buffer,"\n");
+		}
+		closedir(d);
+	}
+	//printf("File Details will be sent! Press ENTER to continue..");
+	write(client, buffer, sizeof(buffer));
+	
+	read(client, fname, sizeof(fname));
+	printf("Sending file %s...\n",fname);
+
+    FILE *fp = fopen(fname,"rb");
+    if(fp==NULL)
+    {
+    	printf("Error in file name\n");
+        perror("File opern error");
+        file=false;
+        return; 
+    }   
+
+	/* Read data from file and send it */
+    while(1)
+	{
+    	/* First read file in chunks of 256 bytes */
+		memset(&buffer, 0, sizeof(buffer));
+        int nread = fread(buffer,1,BUFFSIZE,fp);
+        //printf("Bytes read %d \n", nread);        
+
+    	/* If read was success, send data. */
+        if(nread > 0)
+        {
+            //printf("Sending \n");
+            write(client, buffer, nread);
+        }
+        if(nread < BUFFSIZE)
+        {
+            if(feof(fp))
+	            printf("File transfer completed.\n");
+
+            if(ferror(fp)) printf("Error reading\n");
+            	break;
+	    }
+    }
+    file=false;
+}
 
 void *read_client(void* client_socket)
 {
@@ -39,12 +99,18 @@ void *read_client(void* client_socket)
 
 	while(server)
 	{
-		memset(&buffer, 0, sizeof(buffer));
-		read(client, buffer, sizeof(buffer));
-		if(strcmp(buffer,"q")==0) break;
-		else printf("Client(%d): %s\n",client,buffer);
+		if(!file)
+		{
+			memset(&buffer, 0, sizeof(buffer));
+			read(client, buffer, sizeof(buffer));
+			if(strcmp(buffer,"q")==0) break;
+			else if(strcmp(buffer,"f")==0) file=true;
+			else printf("Client(%d): %s\n",client,buffer);
+		}
+		else file_send(client);
 	}
 	printf("client %d left\n", client);
+	write(client, buffer, sizeof(buffer));
 
 	return NULL;
 }
@@ -56,15 +122,18 @@ void *write_client()
 
 	while(server)
 	{
-		memset(&buffer, 0, sizeof(buffer));
-		fgets(buffer,sizeof(buffer),stdin);
-		buffer[strlen(buffer)-1]='\0';
+		if(!file)
+		{
+			memset(&buffer, 0, sizeof(buffer));
+			fgets(buffer,sizeof(buffer),stdin);
+			buffer[strlen(buffer)-1]='\0';
 
-		if(strcmp(buffer, "q")==0)
-			server=false;
+			if(strcmp(buffer, "q")==0)
+				server=false;
 
-		for(int j=0;j<n_conn;j++)
-			write(fd[j], buffer, sizeof(buffer));
+			for(int j=0;j<n_conn;j++)
+				write(fd[j], buffer, sizeof(buffer));
+		}
 	}
 
 	return NULL;
@@ -106,6 +175,7 @@ int main()
 	pthread_t write;
 	pthread_create(&write, NULL, write_client, NULL);
 	server=true;
+	file=false;
 
 	for(n_conn=0;n_conn<MAX_CLIENTS;n_conn++)
 	{
