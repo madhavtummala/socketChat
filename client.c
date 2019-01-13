@@ -36,7 +36,7 @@ void file_recieve(int client)
 
 	FILE *fp;
 
-	printf("Receiving file...");
+	printf("Receiving file...\n");
    	fp = fopen(fname, "ab"); 
     if(NULL == fp)
     {
@@ -52,11 +52,14 @@ void file_recieve(int client)
     { 
     	br = read(client, recvBuff, BUFFSIZE);
     	
-        sz+=br;
-        clear();
-        //printf("Received now: %zd\n", br);
+        sz++;
+        //clear();
         printf("Received: %ld Mb",(sz/BUFFSIZE));
-	    fflush(stdout);
+        sleep(1);
+        printf("\r");
+        sleep(1);
+        fflush(stdout);
+	    sleep(1);
         
         if(fwrite(recvBuff, 1, br, fp)!=br)
         {
