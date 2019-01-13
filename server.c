@@ -60,7 +60,7 @@ void file_send(int client)
 
 	struct stat file_stats;
 	stat(fname, &file_stats);
-	printf("Size: %u\n", (unsigned int)file_stats.st_size);
+	printf("Size: %uMb\n", (unsigned int)file_stats.st_size/(BUFFSIZE*BUFFSIZE);
 
     FILE *fp = fopen(fname,"rb");
     if(fp==NULL)
