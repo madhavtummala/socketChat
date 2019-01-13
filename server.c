@@ -7,6 +7,7 @@
 #include <pthread.h>			//for multi threading
 #include <stdbool.h>			//for boolean var
 #include <dirent.h>				//for directories
+#include <sys/stat.h>			//for file size
 /*
 
 int sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -57,6 +58,10 @@ void file_send(int client)
 	read(client, fname, sizeof(fname));
 	printf("Sending file %s...\n",fname);
 
+	struct stat file_stats;
+	stat(fname, &file_stats);
+	printf("Size: %u\n", (unsigned int)file_stats.st_size);
+
     FILE *fp = fopen(fname,"rb");
     if(fp==NULL)
     {
@@ -67,12 +72,22 @@ void file_send(int client)
     }   
 
 	/* Read data from file and send it */
+	int size=file_stats.st_size/BUFFSIZE;
+	int i=0,j;
+	double percent;
     while(1)
 	{
     	/* First read file in chunks of 256 bytes */
 		memset(&buffer, 0, sizeof(buffer));
         int nread = fread(buffer,1,BUFFSIZE,fp);
-        //printf("Bytes read %d \n", nread);        
+
+        percent=(i/(double)size)*10;
+        printf("[");
+        for(j=0;j<percent;j++)
+        	printf("#");
+        printf("(%.2f)%]\r", percent*10);
+        i++;
+        fflush(stdout);
 
     	/* If read was success, send data. */
         if(nread > 0)
@@ -83,7 +98,7 @@ void file_send(int client)
         if(nread < BUFFSIZE)
         {
             if(feof(fp))
-	            printf("File transfer completed.\n");
+	            printf("\nFile transfer completed.\n");
 
             if(ferror(fp)) printf("Error reading\n");
             	break;
