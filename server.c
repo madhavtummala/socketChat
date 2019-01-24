@@ -60,7 +60,7 @@ void file_send(int client)
 
 	struct stat file_stats;
 	stat(fname, &file_stats);
-	printf("Size: %uMb\n", (unsigned int)file_stats.st_size/(BUFFSIZE*BUFFSIZE);
+	printf("Size: %uMb\n", (unsigned int)file_stats.st_size/(BUFFSIZE*BUFFSIZE));
 
     FILE *fp = fopen(fname,"rb");
     if(fp==NULL)
@@ -97,8 +97,10 @@ void file_send(int client)
         }
         if(nread < BUFFSIZE)
         {
-            if(feof(fp))
+            if(feof(fp)){
 	            printf("\nFile transfer completed.\n");
+	            break;
+            }
 
             if(ferror(fp)) printf("Error reading\n");
             	break;
