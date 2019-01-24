@@ -9,45 +9,32 @@ Ubuntu / other Linux-based distros
 MacOS
 
 ## Steps:
-
-Here go to folder "chat" for chatbox code or to folder "ftp" for file transfer code.
+The client will run at `../` folder and server will run in `./` folder by default 
 ```
-	gcc server.c -o server
-	gcc client.c -o client
+	chmod +x build.sh
+	chmod +x clean.sh
+	./build.sh
 ```
 ## Options:
 
-To run chatbox code
+To run chatbox code, in one terminal at `./` ,and other terminal at `../`
 ```
-	./client [PORT]
-	./server [PORT]
+	./server
+	./client
 ```
 each in different terminal windows.
 
-To run file transfer code 
+To clean the executables formed
 ```
-	./client
-	./server
+	./clean.sh
 ``` 
-each in different terminal windows.
 
 ## Testing:
 
-You can test the program without the need for another computer by being server and client at the same time.
-In case of chat file, just comment line 27,28 and uncomment 29 for testing. Similarly modify ftp code and server code.
-For file transfer run client and server from different locations.
+The PORT used is `8080` by default. It can be changed by changing the macro in both server.c and client.c. There is a video file `ankur.mp4` which can be used for testing file transfer. The code has ip address set to `INADDR_ANY`. So it works within a computer. To communicate between different computers, use the ip address of that computer in that line. 
 
 ## Note:
 
 Make sure you run the server and client on the same port.
-In file transfer program, the filename will be asked in the program, you need to give the file location with name.
-At this time, you have to change the port numbers manually in ftp line no-34 in client.c and 82 line server.c
-You also need to change the ip-address manually in chatbox code in line.no-27 in client.c 
-
-### To be done:
-
-More options.
-Input of ip address and port numbers.
-Option to close connections and quit.
-Chat and file transfer in the same program.
+The list of files availiable for download will be sent by the server. The client has to select the file among that list. The selected file will be downloaded and a progress bar will indicate the status of download.
  
