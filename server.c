@@ -85,7 +85,7 @@ void file_send(int client)
         printf("[");
         for(j=0;j<percent;j++)
         	printf("#");
-        printf("(%.2f)%]\r", percent*10);
+        printf("[(%.2f)]\r", percent*10);
         i++;
         fflush(stdout);
 

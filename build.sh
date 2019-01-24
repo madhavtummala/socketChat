@@ -1,3 +1,5 @@
-gcc client.c -o client
-mv client ../client
-gcc server.c -o server
+gcc client.c -o client -lpthread
+gcc server.c -o server -lpthread
+PORT="8080"
+PATH="../"
+mv client $PATH/client
